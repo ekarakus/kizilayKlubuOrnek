@@ -32,21 +32,30 @@ namespace YesilayKlubu.Controllers
                     Ad = m.Ad,
                     Soyad = m.Soyad,
                     Email = m.Email,
-                    OkulNumarasi=m.OkulNumarasi
+                    OkulNumarasi = m.OkulNumarasi
                 };
                 var sonuc = await userManager.CreateAsync(kullanici, m.Sifre);
                 if (sonuc.Succeeded)
                 {
                     ViewBag.OK = "Üye kaydınız başarıyla gerçekleşti, Lütfen giriş yapınız";
+                    string icerik = $"Sayın {m.Ad} {m.Soyad}  <br> Sitemize kayıt olduğunuz için teşekkür ederiz ";
+                    icerik += $" Giriş yapmak için {this.Request.Scheme}://{this.Request.Host}/Hesap/";
+                    Islemler.MailGonder("Hoşgeldin", icerik, m.Email);
                 }
                 else
                 {
-                    ModelState.AddModelError("", sonuc.Errors.First().Description);
+                    //kayıt hata ile sonuçlanırsa ön tarafa 
+                    //göstermesi için hata ekle
+                    ModelState.AddModelError("", string.Join("<br>",
+                    sonuc
+                    .Errors
+                    .Select(x => x.Description)
+                    .ToList()));
                 }
             }
-            return View();
+            return View(m);
         }
-  public IActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }
@@ -68,7 +77,7 @@ namespace YesilayKlubu.Controllers
                     {
                         ModelState.AddModelError("", "Hesap kilitli");
                     }
-                    else 
+                    else
                     {
                         ModelState.AddModelError("", "Giriş başarısız");
                     }
@@ -77,12 +86,12 @@ namespace YesilayKlubu.Controllers
             }
             return View();
         }
-    
-    public IActionResult Cikis()
-    {
-        signInManager.SignOutAsync();
-        return RedirectToAction(nameof(Index));
-    }
-    
+
+        public IActionResult Cikis()
+        {
+            signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }
